@@ -1,3 +1,9 @@
+"""
+Main entry point for the Stock Analysis Dashboard.
+This Streamlit app provides multiple tools to analyze Brazilian stocks, track a portfolio, and compare market data.
+Each section is modularized under the `sections/` folder for better maintainability.
+"""
+
 import streamlit as streamlit
 from sections import (
     overview, 
@@ -6,18 +12,18 @@ from sections import (
     portfolio
 )
 
-# Set page config
+# Page configuration
 streamlit.set_page_config(
     page_title="Stock Analysis Dashboard",
     page_icon="📈",
     layout="wide"
 )
 
-# Sidebar
+# Sidebar navigation
 streamlit.sidebar.title("📊 Stock Analysis")
 streamlit.sidebar.markdown("Welcome! Use the menu below to explore.")
 
-# Sidebar options
+# Navigation menu
 menu = streamlit.sidebar.selectbox("Choose a section", [
     "Overview",
     "Stock Info",
@@ -25,7 +31,7 @@ menu = streamlit.sidebar.selectbox("Choose a section", [
     "Portfolio Tracker"
 ])
 
-# Show different sections
+# Route to the appropriate section
 if menu == "Overview":
     overview.show()
 

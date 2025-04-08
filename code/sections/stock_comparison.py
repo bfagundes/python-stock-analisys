@@ -1,3 +1,15 @@
+"""
+Section: Stock Comparison
+This module allows the user to:
+- Select up to 3 stocks from the IBOVESPA index
+- Visualize historical price comparison with a line chart
+- Compare basic financial metrics side by side
+
+Relies on:
+- data/ibov_tickers.csv for ticker-name mapping
+- yfinance for live financial data
+"""
+
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -22,7 +34,7 @@ def show():
 
     ticker_dict = dict(zip(ibov_df["name"], ibov_df["ticker"]))
 
-    # Input selector
+    # Multiselect input
     selected_companies = streamlit.multiselect("Select stocks", options=ticker_dict.keys())
     selected_tickers = [ticker_dict[name] for name in selected_companies]
 
@@ -35,7 +47,11 @@ def show():
         default_start = today - timedelta(days=365)
 
         # User selects date range
-        start_date, end_date = streamlit.date_input("Select date range:", value=(default_start, today), max_value=today)
+        start_date, end_date = streamlit.date_input(
+            "Select date range:", 
+            value=(default_start, today), 
+            max_value=today
+        )
 
         if start_date >= end_date:
             streamlit.warning(f"Please, select a valid date range")
@@ -74,11 +90,16 @@ def show():
                 except Exception as e:
                     streamlit.error(f"Error loading data for {ticker}: {e}")
 
-            # Show the chart
-            fig.update_layout(title="Price Comparison", xaxis_title="Date", yaxis_title="Close Price")
+            # Show price chart
+            fig.update_layout(
+                title="Price Comparison", 
+                xaxis_title="Date", 
+                yaxis_title="Close Price"
+            )
+            
             streamlit.plotly_chart(fig, use_container_width=True)
 
-            # Build metrics comparison table
+            # Build metrics table
             streamlit.subheader(f"Financial Metrics Comparison")
 
             metrics_list = list(next(iter(metrics_data.values())).keys())
@@ -91,9 +112,13 @@ def show():
 
                 for idx, ticker in enumerate(selected_tickers):
                     with columns[idx + 1]:
+                        
                         streamlit.markdown(f"**{ticker}**")
+                        
                         for metric in metrics_list:
                             value = metrics_data[ticker].get(metric, "N/A")
+                            
+                            # Formatting values
                             if isinstance(value, float):
                                 if "Yield" in metric or "ROE" in metric:
                                     value = f"{value:.2%}"  # Format percentage
@@ -101,4 +126,6 @@ def show():
                                     value = f"{value:,.2f}"
                             elif isinstance(value, int):
                                 value = f"{value:,}"
+
+                            # Writing on the table
                             streamlit.markdown(f"{value}")

@@ -1,3 +1,15 @@
+"""
+Section: Portfolio Tracker
+
+This module allows users to:
+- Record operations: buy, sell, bonus
+- Track historical portfolio operations (saved to CSV)
+- Compute current holdings with average price
+- Display a summary of the user's portfolio
+
+Data is persisted in `data/portfolio_operations.csv`.
+"""
+
 import os
 import pandas as pandas
 import streamlit as streamlit
@@ -14,12 +26,15 @@ def load_operations():
 
     try:
         df = pandas.read_csv(OPERATIONS_PATH, parse_dates=["date"])
+        
         # Check if required columns exist
         if not all(col in df.columns for col in expected_cols):
             raise ValueError("CSV missing required columns.")
         return df
+    
     except (FileNotFoundError, pandas.errors.EmptyDataError, pandas.errors.ParserError, ValueError) as e:
         print(f"Error loading operations: {e}")
+        
         # Reset file with correct columns
         pandas.DataFrame(columns=expected_cols).to_csv(OPERATIONS_PATH, index=False)
         return pandas.DataFrame(columns=expected_cols)

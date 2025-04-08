@@ -1,3 +1,12 @@
+"""
+Section: Stock Info
+This module renders the Stock Info page of the dashboard. It allows the user to:
+- Enter a ticker (e.g. PETR4.SA)
+- View basic company metadata
+- Select a date range and visualize historical stock price
+- (Future) Display key financial metrics for analysis
+"""
+
 import streamlit as streamlit
 import yfinance as yfinance
 import plotly.graph_objects as plotly_go
@@ -38,7 +47,11 @@ def show():
             default_start = today - timedelta(days=365)
 
             # User selects date range
-            start_date, end_date = streamlit.date_input("Select date range:", value=(default_start, today), max_value=today)
+            start_date, end_date = streamlit.date_input(
+                "Select date range:", 
+                value=(default_start, today), 
+                max_value=today
+            )
 
             # Only proceed if valid date range
             if start_date < end_date:
@@ -54,8 +67,21 @@ def show():
 
                         # Plotting the graph with Plotly
                         fig = plotly_go.Figure()
-                        fig.add_trace(plotly_go.Scatter(x=hist.index, y=hist["Close"], mode="lines", name="Close"))
-                        fig.update_layout(title=f"{ticker.upper()} - Price History", xaxis_title="Date", yaxis_title="Price")
+                        
+                        fig.add_trace(
+                            plotly_go.Scatter(
+                                x=hist.index, 
+                                y=hist["Close"], 
+                                mode="lines", 
+                                name="Close"
+                        ))
+                        
+                        fig.update_layout(
+                            title=f"{ticker.upper()} - Price History", 
+                            xaxis_title="Date", 
+                            yaxis_title="Price"
+                        )
+
                         streamlit.plotly_chart(fig, use_container_width=True)
                         
                 except Exception as e:
@@ -64,7 +90,6 @@ def show():
             else:
                 streamlit.warning(f"Select a valid date range.")
 
-            streamlit.markdown("---")
             streamlit.subheader("Financial Metrics")
             streamlit.write("TBA the metrics that will be here. Mostly the ones for Fundamental Analisys, Balance, DRE, etc.")
     
