@@ -4,7 +4,7 @@ import plotly.graph_objects as plotly_go
 from datetime import date, timedelta
 
 def show():
-
+    streamlit.header("Stock Info")
     ticker = streamlit.text_input("Enter the stock ticker (e.g. PETR4.SA)", value="PETR4.SA")
 
     if ticker:

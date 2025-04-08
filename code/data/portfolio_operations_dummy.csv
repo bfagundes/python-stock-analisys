@@ -1,0 +1,4 @@
+ticker,date,operation,price,quantity
+PETR4.SA,2025-04-08 00:00:00,buy,1.5,1
+ITSA4.SA,2025-04-08,buy,2.5,10
+PETR4.SA,2025-04-08,sell,3.0,1

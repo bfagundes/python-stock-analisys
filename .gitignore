@@ -179,3 +179,5 @@ outline.txt
 # Project specific files
 config.py
 plan.md
+portfolio.csv
+portfolio_operations.csv

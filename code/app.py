@@ -2,7 +2,8 @@ import streamlit as streamlit
 from sections import (
     overview, 
     stock_info, 
-    stock_comparison
+    stock_comparison,
+    portfolio
 )
 
 # Set page config
@@ -20,11 +21,9 @@ streamlit.sidebar.markdown("Welcome! Use the menu below to explore.")
 menu = streamlit.sidebar.selectbox("Choose a section", [
     "Overview",
     "Stock Info",
-    "Stock Comparison"
+    "Stock Comparison",
+    "Portfolio Tracker"
 ])
-
-# Main Title
-streamlit.title("📈 Stock Analysis Dashboard")
 
 # Show different sections
 if menu == "Overview":
@@ -35,3 +34,6 @@ elif menu == "Stock Info":
 
 elif menu == "Stock Comparison":
     stock_comparison.show()
+
+elif menu == "Portfolio Tracker":
+    portfolio.show()
