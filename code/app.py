@@ -1,6 +1,4 @@
 import streamlit as streamlit
-import yfinance as yfinance
-import pandas as pandas
 from sections import (
     overview, 
     stock_info, 

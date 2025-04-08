@@ -11,7 +11,7 @@ def show():
     streamlit.header("Stocks Comparison")
 
     # Loading file with IBOV tickers
-    base_path = os.path.dirname(os.path.dirname(__file__))  # up from /sections/ to /code/
+    base_path = os.path.dirname(os.path.dirname(__file__))
     csv_path = os.path.join(base_path, "data", "ibov_tickers.csv")
 
     try:
