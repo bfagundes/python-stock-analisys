@@ -16,11 +16,12 @@ import pandas as pandas
 import streamlit as streamlit
 from datetime import date
 import yfinance as yfinance
-import plotly.graph_objects as plotly_go
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 OPERATIONS_PATH = os.path.join(DATA_DIR, "portfolio_operations.csv")
 CSV_COLUMNS = ["ticker", "date", "operation", "price", "quantity"]
+OPERATIONS = ["Buy", "Sell", "Bonus"]
+ASSET_TYPES = ["Stock", "FII", "ETF", "Crypto", "Fixed Income", "Other"]
     
 def load_operations():
     if not os.path.exists(OPERATIONS_PATH):
@@ -60,9 +61,9 @@ def compute_portfolio(ops):
     portfolio = []
     for ticker in ops["ticker"].unique():
         data = ops[ops["ticker"] == ticker]
-        buys = data[data["operation"] == "buy"]
-        sells = data[data["operation"] == "sell"]
-        bonuses = data[data["operation"] == "bonus"]
+        buys = data[data["operation"] == "Buy"]
+        sells = data[data["operation"] == "Sell"]
+        bonuses = data[data["operation"] == "Bonus"]
 
         total_bought = buys["quantity"].sum() + bonuses["quantity"].sum()
         total_sold = sells["quantity"].sum()
@@ -79,6 +80,7 @@ def compute_portfolio(ops):
 
 def show():
     streamlit.header("💼 Portfolio Tracker")
+    # Loads the portfolio from the file
     ops = load_operations()
     portfolio_df = compute_portfolio(ops)
 
@@ -96,6 +98,7 @@ def show():
             except:
                 return None
             
+        # Gets the ticker short name
         def get_short_name(ticker):
             try:
                 info = yfinance.Ticker(ticker).info
@@ -155,11 +158,11 @@ def show():
             "gain_loss_pct": "Gain/Loss"
         }), use_container_width=True)
 
-    streamlit.subheader("➕ Add New Operation")
+    streamlit.subheader("Add New Operation")
 
     with streamlit.form("add_operation_form", clear_on_submit=True):
         ticker = streamlit.text_input("Ticker (e.g. PETR4.SA)", max_chars=12).upper()
-        operation = streamlit.selectbox("Operation Type", ["buy", "sell", "bonus"])
+        operation = streamlit.selectbox("Operation Type", OPERATIONS)
         op_date = streamlit.date_input("Date", value=date.today())
         quantity = streamlit.number_input("Quantity", step=1, min_value=1)
         price = 0.0 if operation == "bonus" else streamlit.number_input("Price", format="%.2f")
@@ -169,10 +172,10 @@ def show():
         # Prevent invalid sells
         current_qty = portfolio_df[portfolio_df["ticker"] == ticker]["quantity"].sum()
         if operation == "sell" and quantity > current_qty:
-            streamlit.error(f"❌ Cannot sell {quantity} shares. You only hold {current_qty}.")
+            streamlit.error(f"Cannot sell {quantity} shares. You only hold {current_qty}.")
 
         # Save Operation
         else:
             save_operation(ticker, op_date, operation, price, quantity)
-            streamlit.success(f"✅ {operation.capitalize()} recorded for {ticker}.")
+            streamlit.success(f"{operation.capitalize()} recorded for {ticker}.")
             streamlit.rerun()
