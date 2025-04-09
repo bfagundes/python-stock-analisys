@@ -48,7 +48,7 @@ def save_operation(ticker, op_date, operation, price, quantity):
         "date": op_date,
         "operation": operation,
         "price": price,
-        "quantity": quantity
+        "quantity": quantity,
     }])
     ops = load_operations()
     ops = pandas.concat([ops, new_op], ignore_index=True)
@@ -96,7 +96,15 @@ def show():
                 return hist["Close"].iloc[-1] if not hist.empty else None
             except:
                 return None
+            
+        def get_short_name(ticker):
+            try:
+                info = yfinance.Ticker(ticker).info
+                return info.get("shortName", "")
+            except:
+                return ""
 
+        display_df["ticker_shortname"] = display_df["ticker"].apply(get_short_name)
         display_df["last_close"] = display_df["ticker"].apply(get_last_close)
         display_df["invested_value"] = display_df["quantity"] * display_df["avg_price"]
         display_df["current_value"] = display_df["quantity"] * display_df["last_close"]
@@ -118,7 +126,6 @@ def show():
         col3.metric("📦 Stocks Held", f"{int(total_qty)}")
         
         # Format for display
-        #display_df = enriched_df.copy()
         display_df["quantity"] = display_df["quantity"].apply(lambda x: f"{x:,.0f}")
         display_df["avg_price"] = display_df["avg_price"].apply(lambda x: f"R$ {x:,.2f}")
         display_df["last_close"] = display_df["last_close"].apply(lambda x: f"R$ {x:,.2f}" if x else "N/A")
@@ -126,8 +133,21 @@ def show():
         display_df["current_value"] = display_df["current_value"].apply(lambda x: f"R$ {x:,.2f}")
         display_df["gain_loss_pct"] = display_df["gain_loss_pct"].apply(lambda x: f"{x:.2f}%")
 
+        # Reorder columns before renaming
+        display_df = display_df[[
+            "ticker",
+            "ticker_shortname",
+            "quantity",
+            "avg_price",
+            "last_close",
+            "invested_value",
+            "current_value",
+            "gain_loss_pct"
+        ]]
+
         streamlit.dataframe(display_df.rename(columns={
             "ticker": "Ticker",
+            "ticker_shortname": "Name",
             "quantity": "Quantity",
             "avg_price": "Avg Price",
             "last_close": "Last Price",
@@ -148,11 +168,11 @@ def show():
 
     if submit:
         # Prevent invalid sells
-        streamlit.write("DEBUG: Portfolio DataFrame", portfolio_df)
-
         current_qty = portfolio_df[portfolio_df["ticker"] == ticker]["quantity"].sum()
         if operation == "sell" and quantity > current_qty:
             streamlit.error(f"❌ Cannot sell {quantity} shares. You only hold {current_qty}.")
+
+        # Save Operation
         else:
             save_operation(ticker, op_date, operation, price, quantity)
             streamlit.success(f"✅ {operation.capitalize()} recorded for {ticker}.")
