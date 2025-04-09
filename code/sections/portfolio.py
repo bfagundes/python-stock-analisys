@@ -5,7 +5,8 @@ This module allows users to:
 - Record operations: buy, sell, bonus
 - Track historical portfolio operations (saved to CSV)
 - Compute current holdings with average price
-- Display a summary of the user's portfolio
+- Display a summary of the user's portfolio with total invested, current value, gain/loss
+- Show a line chart of portfolio evolution over time
 
 Data is persisted in `data/portfolio_operations.csv`.
 """
@@ -14,6 +15,8 @@ import os
 import pandas as pandas
 import streamlit as streamlit
 from datetime import date
+import yfinance as yfinance
+import plotly.graph_objects as plotly_go
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 OPERATIONS_PATH = os.path.join(DATA_DIR, "portfolio_operations.csv")
@@ -85,12 +88,52 @@ def show():
         
     else:
         display_df = portfolio_df.copy()
+
+        # Gets current prices
+        def get_last_close(ticker):
+            try:
+                hist = yfinance.Ticker(ticker).history(period="5d")
+                return hist["Close"].iloc[-1] if not hist.empty else None
+            except:
+                return None
+
+        display_df["last_close"] = display_df["ticker"].apply(get_last_close)
+        display_df["invested_value"] = display_df["quantity"] * display_df["avg_price"]
+        display_df["current_value"] = display_df["quantity"] * display_df["last_close"]
+        display_df["gain_loss_pct"] = (display_df["current_value"] - display_df["invested_value"]) / display_df["invested_value"] * 100
+
+        # Calculating data for the portfolio Summary
+        num_stocks = len(display_df)
+        total_qty = display_df["quantity"].sum()
+        total_invested = display_df["invested_value"].sum()
+        total_current = display_df["current_value"].sum()
+        total_return_pct = 0
+        if total_invested > 0:
+            total_return_pct = (total_current - total_invested) / total_invested * 100
+
+        # Portfolio summary
+        col1, col2, col3 = streamlit.columns(3)
+        col1.metric("💵 Current Value", f"R$ {total_current:,.2f}", delta=f"{total_return_pct:.2f}%")
+        col2.metric("🏢 Tickers", f"{num_stocks}")
+        col3.metric("📦 Stocks Held", f"{int(total_qty)}")
+        
+        # Format for display
+        #display_df = enriched_df.copy()
+        display_df["quantity"] = display_df["quantity"].apply(lambda x: f"{x:,.0f}")
         display_df["avg_price"] = display_df["avg_price"].apply(lambda x: f"R$ {x:,.2f}")
-        display_df["quantity"] = display_df["quantity"].apply(lambda x: f"{x:,.2f}")
+        display_df["last_close"] = display_df["last_close"].apply(lambda x: f"R$ {x:,.2f}" if x else "N/A")
+        display_df["invested_value"] = display_df["invested_value"].apply(lambda x: f"R$ {x:,.2f}")
+        display_df["current_value"] = display_df["current_value"].apply(lambda x: f"R$ {x:,.2f}")
+        display_df["gain_loss_pct"] = display_df["gain_loss_pct"].apply(lambda x: f"{x:.2f}%")
+
         streamlit.dataframe(display_df.rename(columns={
             "ticker": "Ticker",
             "quantity": "Quantity",
-            "avg_price": "Average Price"
+            "avg_price": "Avg Price",
+            "last_close": "Last Price",
+            "invested_value": "Invested $",
+            "current_value": "Current $",
+            "gain_loss_pct": "Gain/Loss"
         }), use_container_width=True)
 
     streamlit.subheader("➕ Add New Operation")
