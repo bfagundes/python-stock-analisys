@@ -79,7 +79,7 @@ def compute_portfolio(ops):
     return pandas.DataFrame(portfolio)
 
 def show():
-    streamlit.header("💼 Portfolio Tracker")
+    streamlit.header("Portfolio Tracker")
     # Loads the portfolio from the file
     ops = load_operations()
     portfolio_df = compute_portfolio(ops)

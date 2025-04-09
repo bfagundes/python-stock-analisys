@@ -20,7 +20,7 @@ streamlit.set_page_config(
 )
 
 # Sidebar navigation
-streamlit.sidebar.title("📊 Stock Analysis")
+streamlit.sidebar.title("Stock Analysis")
 streamlit.sidebar.markdown("Welcome! Use the menu below to explore.")
 
 # Navigation menu
