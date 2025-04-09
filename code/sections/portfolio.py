@@ -20,18 +20,17 @@ import plotly.graph_objects as plotly_go
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 OPERATIONS_PATH = os.path.join(DATA_DIR, "portfolio_operations.csv")
+CSV_COLUMNS = ["ticker", "date", "operation", "price", "quantity"]
     
 def load_operations():
-    expected_cols = ["ticker", "date", "operation", "price", "quantity"]
-
     if not os.path.exists(OPERATIONS_PATH):
-        pandas.DataFrame(columns=expected_cols).to_csv(OPERATIONS_PATH, index=False)
+        pandas.DataFrame(columns=CSV_COLUMNS).to_csv(OPERATIONS_PATH, index=False)
 
     try:
         df = pandas.read_csv(OPERATIONS_PATH, parse_dates=["date"])
         
         # Check if required columns exist
-        if not all(col in df.columns for col in expected_cols):
+        if not all(col in df.columns for col in CSV_COLUMNS):
             raise ValueError("CSV missing required columns.")
         return df
     
@@ -39,8 +38,8 @@ def load_operations():
         print(f"Error loading operations: {e}")
         
         # Reset file with correct columns
-        pandas.DataFrame(columns=expected_cols).to_csv(OPERATIONS_PATH, index=False)
-        return pandas.DataFrame(columns=expected_cols)
+        pandas.DataFrame(columns=CSV_COLUMNS).to_csv(OPERATIONS_PATH, index=False)
+        return pandas.DataFrame(columns=CSV_COLUMNS)
     
 def save_operation(ticker, op_date, operation, price, quantity):
     new_op = pandas.DataFrame([{
@@ -56,7 +55,7 @@ def save_operation(ticker, op_date, operation, price, quantity):
 
 def compute_portfolio(ops):
     if ops.empty or "ticker" not in ops.columns:
-        return pandas.DataFrame(columns=["ticker", "quantity", "avg_price"])
+        return pandas.DataFrame(columns=CSV_COLUMNS)
     
     portfolio = []
     for ticker in ops["ticker"].unique():
