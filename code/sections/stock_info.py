@@ -9,11 +9,8 @@ This module renders the Stock Info page of the dashboard. It allows the user to:
 
 import streamlit as streamlit
 import plotly.graph_objects as plotly_go
+import utils.finance_data as finance_data
 from datetime import date, timedelta
-from utils.finance_data import (
-    get_historical_prices,
-    get_info
-)
 
 def show():
     streamlit.header("Stock Info")
@@ -22,7 +19,7 @@ def show():
     if ticker:
         try:
             # Getting the stock data
-            info = get_info(ticker) 
+            info = finance_data.get_info(ticker) 
 
             streamlit.subheader(f"{info.get('shortName', 'N/A')}")
             col1, col2 = streamlit.columns(2)
@@ -56,15 +53,12 @@ def show():
             # Only proceed if valid date range
             if start_date < end_date:
                 try:
-                    hist = get_historical_prices(ticker, start_date, end_date)
+                    hist = finance_data.get_historical_prices(ticker, start_date, end_date)
 
                     if hist.empty:
                         streamlit.warning(f"No historical data available for this range.")
+                    
                     else:
-
-                        # Plotting the graph with Streamlit
-                        #streamlit.line_chart(hist["Close"])
-
                         # Plotting the graph with Plotly
                         fig = plotly_go.Figure()
                         

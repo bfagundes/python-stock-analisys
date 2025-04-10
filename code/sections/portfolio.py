@@ -14,12 +14,9 @@ Data is persisted in `data/portfolio_operations.csv`.
 import os
 import pandas as pandas
 import streamlit as streamlit
+import utils.finance_data as finance_data
+import utils.tesouro_direto as tesouro_direto
 from datetime import date
-from utils.finance_data import (
-    get_last_close,
-    get_short_name,
-    is_valid_yfinance_ticker
-)
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 OPERATIONS_PATH = os.path.join(DATA_DIR, "portfolio_operations.csv")
@@ -47,7 +44,7 @@ def load_operations():
         return pandas.DataFrame(columns=CSV_COLUMNS)
     
 def save_operation(ticker, op_date, operation, price, quantity, asset_type):
-    new_op = pandas.DataFrame([{
+    new_operation = pandas.DataFrame([{
         "ticker": ticker,
         "date": op_date,
         "operation": operation,
@@ -55,17 +52,18 @@ def save_operation(ticker, op_date, operation, price, quantity, asset_type):
         "quantity": quantity,
         "asset_type": asset_type
     }])
-    ops = load_operations()
-    ops = pandas.concat([ops, new_op], ignore_index=True)
-    ops.to_csv(OPERATIONS_PATH, index=False)
+    operations = load_operations()
+    operations = pandas.concat([operations, new_operation], ignore_index=True)
+    operations.to_csv(OPERATIONS_PATH, index=False)
 
-def compute_portfolio(ops):
-    if ops.empty or "ticker" not in ops.columns:
+def compute_portfolio(operations):
+    if operations.empty or "ticker" not in operations.columns:
         return pandas.DataFrame(columns=CSV_COLUMNS)
     
     portfolio = []
-    for ticker in ops["ticker"].unique():
-        data = ops[ops["ticker"] == ticker]
+    for ticker in operations["ticker"].unique():
+        data = operations[operations["ticker"] == ticker]
+        
         buys = data[data["operation"] == "Buy"]
         sells = data[data["operation"] == "Sell"]
         bonuses = data[data["operation"] == "Bonus"]
@@ -88,8 +86,8 @@ def show():
     streamlit.header("Portfolio Tracker")
     
     # Loads the portfolio from the file
-    ops = load_operations()
-    portfolio_df = compute_portfolio(ops)
+    operations = load_operations()
+    portfolio_df = compute_portfolio(operations)
 
     if portfolio_df.empty:
         streamlit.info("No holdings yet.")
@@ -97,8 +95,8 @@ def show():
     else:
         display_df = portfolio_df.copy()
 
-        display_df["ticker_shortname"] = display_df["ticker"].apply(get_short_name)
-        display_df["last_close"] = display_df["ticker"].apply(get_last_close)
+        display_df["ticker_shortname"] = display_df["ticker"].apply(finance_data.get_short_name)
+        display_df["last_close"] = display_df["ticker"].apply(finance_data.get_last_close)
         display_df["invested_value"] = display_df["quantity"] * display_df["avg_price"]
         display_df["current_value"] = display_df["quantity"] * display_df["last_close"]
         display_df["gain_loss_pct"] = (display_df["current_value"] - display_df["invested_value"]) / display_df["invested_value"] * 100
@@ -171,7 +169,7 @@ def show():
             streamlit.error(f"Cannot sell {quantity} shares. You only hold {current_qty}.")
 
         # Prevent invalid buys
-        elif operation == "Buy" and not is_valid_yfinance_ticker(ticker):
+        elif operation == "Buy" and not finance_data.is_valid_yfinance_ticker(ticker):
             streamlit.error(f"Ticker '{ticker}' not found. Please check the symbol.")
 
         # Save Operation
