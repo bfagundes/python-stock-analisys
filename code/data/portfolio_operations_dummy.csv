@@ -1,3 +1,4 @@
-ticker,date,operation,price,quantity,asset_type
+ticker,operation_date,operation_type,investment_amount,quantity,asset_type
 BBAS3.SA,2023-06-13 00:00:00,Buy,24.36,20,Stock
 MXRF11.SA,2023-05-29,Buy,10.53,150,FII
+TESOURO PREFIXADO|2031-01-01,2024-12-04,buy,4998.2,10.62,Fixed Income

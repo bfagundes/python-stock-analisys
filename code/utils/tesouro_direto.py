@@ -78,3 +78,13 @@ def get_bond_returns(bond_name, maturity_date, investment_date, investment_amoun
     cumulative_returns = (1 + daily_pct_returns.fillna(investment_amount)).cumprod() - 1
 
     return cumulative_returns
+
+def get_last_price(bond_name, investment_date, quantity, invested_value):
+    try:
+        temp_name, maturity_date = bond_name.split("|")
+        bond_returns = get_bond_returns(temp_name, maturity_date, investment_date, invested_value)
+        bond_current_value = bond_returns.iloc[-1,0]
+        return bond_current_value / quantity
+    
+    except:
+        return None
