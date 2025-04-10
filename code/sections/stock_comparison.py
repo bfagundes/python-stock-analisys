@@ -14,10 +14,13 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import streamlit as streamlit
-import yfinance as yfinance
 import pandas as pandas
 import plotly.graph_objects as plotly_go
 from datetime import date, timedelta
+from utils.finance_data import (
+    get_historical_prices,
+    get_info
+)
 
 def show():
     streamlit.header("Stocks Comparison")
@@ -62,9 +65,8 @@ def show():
 
             for ticker in selected_tickers:
                 try:
-                    stock = yfinance.Ticker(ticker)
-                    hist = stock.history(start=start_date, end=end_date)
-                    info = stock.info
+                    hist = get_historical_prices(ticker, start_date, end_date)
+                    info = get_info(ticker) 
 
                     if not hist.empty:
                         fig.add_trace(

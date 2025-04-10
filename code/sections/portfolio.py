@@ -15,7 +15,10 @@ import os
 import pandas as pandas
 import streamlit as streamlit
 from datetime import date
-import yfinance as yfinance
+from utils.finance_data import (
+    get_last_close,
+    get_short_name
+)
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 OPERATIONS_PATH = os.path.join(DATA_DIR, "portfolio_operations.csv")
@@ -91,22 +94,6 @@ def show():
         
     else:
         display_df = portfolio_df.copy()
-
-        # Gets current prices
-        def get_last_close(ticker):
-            try:
-                hist = yfinance.Ticker(ticker).history(period="5d")
-                return hist["Close"].iloc[-1] if not hist.empty else None
-            except:
-                return None
-            
-        # Gets the ticker short name
-        def get_short_name(ticker):
-            try:
-                info = yfinance.Ticker(ticker).info
-                return info.get("shortName", "")
-            except:
-                return ""
 
         display_df["ticker_shortname"] = display_df["ticker"].apply(get_short_name)
         display_df["last_close"] = display_df["ticker"].apply(get_last_close)
