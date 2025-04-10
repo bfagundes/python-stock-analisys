@@ -85,6 +85,7 @@ def compute_portfolio(ops):
 
 def show():
     streamlit.header("Portfolio Tracker")
+    
     # Loads the portfolio from the file
     ops = load_operations()
     portfolio_df = compute_portfolio(ops)
@@ -137,6 +138,7 @@ def show():
             "gain_loss_pct"
         ]]
 
+        # Renaming the columns
         streamlit.dataframe(display_df.rename(columns={
             "asset_type": "Type",
             "ticker": "Ticker",
@@ -149,10 +151,11 @@ def show():
             "gain_loss_pct": "Gain/Loss"
         }), use_container_width=True)
 
+    # Add Operation Form
     streamlit.subheader("Add New Operation")
 
     with streamlit.form("add_operation_form", clear_on_submit=True):
-        ticker = streamlit.text_input("Ticker (e.g. PETR4.SA)", max_chars=12).upper()
+        ticker = streamlit.text_input("Ticker (e.g. 'PETR4.SA' or 'Tesouro Prefixado|2031-01-01')", max_chars=12).upper()
         asset_type = streamlit.selectbox("Asset Type", ASSET_TYPES)
         operation = streamlit.selectbox("Operation Type", OPERATIONS)
         op_date = streamlit.date_input("Date", value=date.today())

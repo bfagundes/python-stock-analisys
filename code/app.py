@@ -9,7 +9,8 @@ from sections import (
     overview, 
     stock_info, 
     stock_comparison,
-    portfolio
+    portfolio,
+    tesouro_info
 )
 
 # Page configuration
@@ -28,7 +29,8 @@ menu = streamlit.sidebar.selectbox("Choose a section", [
     "Overview",
     "Stock Info",
     "Stock Comparison",
-    "Portfolio Tracker"
+    "Tesouro Info",
+    "Portfolio Tracker",
 ])
 
 # Route to the appropriate section
@@ -40,6 +42,9 @@ elif menu == "Stock Info":
 
 elif menu == "Stock Comparison":
     stock_comparison.show()
+
+elif menu == "Tesouro Info":
+    tesouro_info.show()
 
 elif menu == "Portfolio Tracker":
     portfolio.show()
