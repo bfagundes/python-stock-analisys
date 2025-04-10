@@ -92,6 +92,7 @@ def show():
 
             streamlit.subheader("Financial Metrics")
             streamlit.write("TBA the metrics that will be here. Mostly the ones for Fundamental Analisys, Balance, DRE, etc.")
+            streamlit.write("📦 Full info dictionary", info)
     
         except Exception as e:
             streamlit.error(f"Failed to fetch data for ticker '{ticker}'. Error: {e}")

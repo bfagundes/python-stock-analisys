@@ -19,9 +19,9 @@ import yfinance as yfinance
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 OPERATIONS_PATH = os.path.join(DATA_DIR, "portfolio_operations.csv")
-CSV_COLUMNS = ["ticker", "date", "operation", "price", "quantity"]
+CSV_COLUMNS = ["ticker", "date", "operation", "price", "quantity", "asset_type"]
 OPERATIONS = ["Buy", "Sell", "Bonus"]
-ASSET_TYPES = ["Stock", "FII", "ETF", "Crypto", "Fixed Income", "Other"]
+ASSET_TYPES = ["Stock", "FII", "ETF", "Crypto"]
     
 def load_operations():
     if not os.path.exists(OPERATIONS_PATH):
@@ -42,13 +42,14 @@ def load_operations():
         pandas.DataFrame(columns=CSV_COLUMNS).to_csv(OPERATIONS_PATH, index=False)
         return pandas.DataFrame(columns=CSV_COLUMNS)
     
-def save_operation(ticker, op_date, operation, price, quantity):
+def save_operation(ticker, op_date, operation, price, quantity, asset_type):
     new_op = pandas.DataFrame([{
         "ticker": ticker,
         "date": op_date,
         "operation": operation,
         "price": price,
         "quantity": quantity,
+        "asset_type": asset_type
     }])
     ops = load_operations()
     ops = pandas.concat([ops, new_op], ignore_index=True)
@@ -74,7 +75,8 @@ def compute_portfolio(ops):
             portfolio.append({
                 "ticker": ticker,
                 "quantity": current_qty,
-                "avg_price": round(weighted_avg_price, 2)
+                "avg_price": round(weighted_avg_price, 2),
+                "asset_type": data["asset_type"].iloc[0]
             })
     return pandas.DataFrame(portfolio)
 
@@ -137,6 +139,7 @@ def show():
 
         # Reorder columns before renaming
         display_df = display_df[[
+            "asset_type",
             "ticker",
             "ticker_shortname",
             "quantity",
@@ -148,6 +151,7 @@ def show():
         ]]
 
         streamlit.dataframe(display_df.rename(columns={
+            "asset_type": "Type",
             "ticker": "Ticker",
             "ticker_shortname": "Name",
             "quantity": "Quantity",
@@ -162,6 +166,7 @@ def show():
 
     with streamlit.form("add_operation_form", clear_on_submit=True):
         ticker = streamlit.text_input("Ticker (e.g. PETR4.SA)", max_chars=12).upper()
+        asset_type = streamlit.selectbox("Asset Type", ASSET_TYPES)
         operation = streamlit.selectbox("Operation Type", OPERATIONS)
         op_date = streamlit.date_input("Date", value=date.today())
         quantity = streamlit.number_input("Quantity", step=1, min_value=1)
@@ -176,6 +181,6 @@ def show():
 
         # Save Operation
         else:
-            save_operation(ticker, op_date, operation, price, quantity)
+            save_operation(ticker, op_date, operation, price, quantity, asset_type)
             streamlit.success(f"{operation.capitalize()} recorded for {ticker}.")
             streamlit.rerun()
