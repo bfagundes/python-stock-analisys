@@ -43,3 +43,14 @@ def get_historical_prices(ticker: str, start_date, end_date):
     except Exception as e:
         print(f"Error fetching historical prices for {ticker}: {e}")
         return None
+
+def is_valid_yfinance_ticker(ticker):
+    """Checks whether a given ticker is valid on yFinance"""
+
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        hist = ticker_obj.history(period="1d")
+        return not hist.empty
+    
+    except:
+        return False

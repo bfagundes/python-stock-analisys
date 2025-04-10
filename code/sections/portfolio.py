@@ -17,7 +17,8 @@ import streamlit as streamlit
 from datetime import date
 from utils.finance_data import (
     get_last_close,
-    get_short_name
+    get_short_name,
+    is_valid_yfinance_ticker
 )
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
@@ -168,6 +169,10 @@ def show():
         current_qty = portfolio_df[portfolio_df["ticker"] == ticker]["quantity"].sum()
         if operation == "sell" and quantity > current_qty:
             streamlit.error(f"Cannot sell {quantity} shares. You only hold {current_qty}.")
+
+        # Prevent invalid buys
+        elif operation == "Buy" and not is_valid_yfinance_ticker(ticker):
+            streamlit.error(f"Ticker '{ticker}' not found. Please check the symbol.")
 
         # Save Operation
         else:
