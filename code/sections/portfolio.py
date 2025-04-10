@@ -80,12 +80,9 @@ def compute_portfolio(operations):
 
             # If Fixed Income, adapt display names
             if asset_type_var == "Fixed Income":
-                bond_name, maturity_date = ticker.split("|")
-                
-                # Normalizing the TESOURO_BONDS for comparison
-                normalized_bonds = {k.lower(): v for k, v in tesouro_direto.TESOURO_BONDS.items()}
-                bond_code = normalized_bonds[bond_name.lower().strip()]
-
+                bond_name = tesouro_direto.get_bond_name(ticker)
+                maturity_date = tesouro_direto.get_maturity_date(ticker)
+                bond_code = tesouro_direto.TESOURO_BONDS[bond_name]
                 ticker_display = f"{bond_code.upper()}_{maturity_date.split('-')[0]}"
                 ticker_shortname = f"{bond_name} {maturity_date.split('-')[0]}"
             
@@ -108,8 +105,11 @@ def compute_portfolio(operations):
 def get_last_price(row):
     if row["asset_type"] == "Fixed Income":
         try:
-            bond_name, maturity_date = row["original_ticker"].split("|")
-            return tesouro_direto.get_last_price(bond_name, row["operation_date"], row["quantity"], row["investment_amount"])
+            bond_name = tesouro_direto.get_bond_name(row["original_ticker"])
+            maturity_date = tesouro_direto.get_maturity_date(row["original_ticker"])
+            print(f"Bond name: {bond_name}")
+            print(f"Last price: {tesouro_direto.get_last_price(bond_name, maturity_date, row["operation_date"], row["quantity"], row["investment_amount"])}")
+            return tesouro_direto.get_last_price(bond_name, maturity_date, row["operation_date"], row["quantity"], row["investment_amount"])
         except Exception as e:
             print("Tesouro Direto price error:", e)
             return None
@@ -220,7 +220,7 @@ def show():
         # Prevent invalid Tesouro Direto ticker
         if asset_type == "Fixed Income":
             try:
-                bond_name, maturity_date = ticker.split("|")
+                bond_name = tesouro_direto.get_bond_name(ticker)
                 if bond_name not in tesouro_direto.TESOURO_BONDS:
                     streamlit.error(f"Tesouro Direto ticker '{bond_name}' invalid. The format should be 'Bond_Name|Maturity_date' e.g. 'Tesouro Prefixado|2031-01-01'")
                     form_error = True

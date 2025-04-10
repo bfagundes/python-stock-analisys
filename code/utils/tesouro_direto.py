@@ -2,15 +2,26 @@ import pandas as pd
 import requests
 import io
 
+# TESOURO_BONDS = {
+#     "Tesouro IPCA+ com Juros Semestrais": "NTN-B",
+#     "Tesouro IGPM+ com Juros Semestrais": "NTN-C",
+#     "Tesouro Prefixado": "LTN",
+#     "Tesouro Prefixado com Juros Semestrais": "NTN-F",
+#     "Tesouro Selic": "LTF",
+#     "Tesouro IPCA+": "NTN-B PRINCIPAL",
+#     "Tesouro RendA+": "RENDA+",
+#     "Tesouro Educa+": "EDUCA+",
+# }
+
 TESOURO_BONDS = {
-    "Tesouro IPCA+ com Juros Semestrais": "NTN-B",
-    "Tesouro IGPM+ com Juros Semestrais": "NTN-C",
-    "Tesouro Prefixado": "LTN",
-    "Tesouro Prefixado com Juros Semestrais": "NTN-F",
-    "Tesouro Selic": "LTF",
-    "Tesouro IPCA+": "NTN-B PRINCIPAL",
-    "Tesouro RendA+": "RENDA+",
-    "Tesouro Educa+": "EDUCA+",
+    "TESOURO IPCA+ COM JUROS SEMESTRAIS": "NTN-B",
+    "TESOURO IGPM+ COM JUROS SEMESTRAIS": "NTN-C",
+    "TESOURO PREFIXADO": "LTN",
+    "TESOURO PREFIXADO COM JUROS SEMESTRAIS": "NTN-F",
+    "TESOURO SELIC": "LTF",
+    "TESOURO IPCA+": "NTN-B PRINCIPAL",
+    "TESOURO RENDA+": "RENDA+",
+    "TESOURO EDUCA+": "EDUCA+",
 }
 
 def parse_date_columns(dataframe):
@@ -37,6 +48,8 @@ def get_bonds(type = "venda", group = True):
     data_str = io.StringIO(data)
     dataframe = pd.read_csv(data_str, sep=";", decimal=",")
 
+    print(dataframe)
+
     # Converting date-related columns into datetime objects
     dataframe = parse_date_columns(dataframe)
 
@@ -55,16 +68,16 @@ def get_bond_returns(bond_name, maturity_date, investment_date, investment_amoun
     bonds = get_bonds(type="taxa", group=True)
 
     # Retrieve the appropriate bond
-    bond = bonds.loc[(bond_name, maturity_date)]
+    # Why .title() - because the CSV has the data not fully upper or lowercase e.g. Tesouro Prefixado 
+    # and title() matches that format
+    bond = bonds.loc[(bond_name.title(), maturity_date)]
 
     # Builds a time series with Preco Unitario 
     # Sorts by date
     # Sets the date as index
     price_series = bond.sort_values("Data Base").set_index("Data Base")[["PU Base Manha"]]
 
-    # Renaming the column for clarity, e.g. IPCA_2026_2022-01-01
-    maturity_year = maturity_date.split("-")[0]
-    #price_series.columns = [TESOURO_BONDS[bond_name].upper() + "_" + maturity_year + "_" + investment_date]
+    # Naming the column
     price_series.columns = ["Cumulative Returns"]
 
     # Filters for dates starting from the investment date
@@ -79,12 +92,22 @@ def get_bond_returns(bond_name, maturity_date, investment_date, investment_amoun
 
     return cumulative_returns
 
-def get_last_price(bond_name, investment_date, quantity, invested_value):
+def get_last_price(bond_name, maturity_date, investment_date, quantity, investment_amount):
+    bond_returns = get_bond_returns(bond_name, maturity_date, investment_date, investment_amount)
+    bond_current_value = bond_returns.iloc[-1,0]
+    print(f"A: {bond_current_value}")
+    return bond_current_value / quantity
+
+def get_bond_name(ticker):
     try:
-        temp_name, maturity_date = bond_name.split("|")
-        bond_returns = get_bond_returns(temp_name, maturity_date, investment_date, invested_value)
-        bond_current_value = bond_returns.iloc[-1,0]
-        return bond_current_value / quantity
-    
-    except:
-        return None
+        bond_name, maturity_date = ticker.split("|")
+        return bond_name
+    except ValueError as e:
+        raise ValueError(f"Invalid ticker format: {e}")
+
+def get_maturity_date(ticker):
+    try:
+        bond_name, maturity_date = ticker.split("|")
+        return maturity_date
+    except ValueError as e:
+        raise ValueError(f"Invalid ticker format: {e}")
